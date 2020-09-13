@@ -213,6 +213,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69323bff1fb41c635347b8ead484a5ca6c3f11914d784170b158d8449ab07f8e"
+dependencies = [
+ "cfg-if",
+ "crossbeam-channel",
+ "crossbeam-deque",
+ "crossbeam-epoch 0.8.2",
+ "crossbeam-queue",
+ "crossbeam-utils 0.7.2",
+]
+
+[[package]]
 name = "crossbeam-channel"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -235,6 +249,19 @@ dependencies = [
 
 [[package]]
 name = "crossbeam-epoch"
+version = "0.7.1"
+source = "git+https://github.com/crossbeam-rs/crossbeam.git?rev=8cc906b#8cc906b9933ef443331c30513026346399debd2d"
+dependencies = [
+ "arrayvec",
+ "cfg-if",
+ "crossbeam-utils 0.6.5",
+ "lazy_static",
+ "memoffset 0.2.1",
+ "scopeguard 1.1.0",
+]
+
+[[package]]
+name = "crossbeam-epoch"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fedcd6772e37f3da2a9af9bf12ebe046c0dfe657992377b4df982a2b54cd37a9"
@@ -243,8 +270,8 @@ dependencies = [
  "cfg-if",
  "crossbeam-utils 0.6.6",
  "lazy_static",
- "memoffset",
- "scopeguard",
+ "memoffset 0.5.5",
+ "scopeguard 1.1.0",
 ]
 
 [[package]]
@@ -258,8 +285,39 @@ dependencies = [
  "crossbeam-utils 0.7.2",
  "lazy_static",
  "maybe-uninit",
- "memoffset",
- "scopeguard",
+ "memoffset 0.5.5",
+ "scopeguard 1.1.0",
+]
+
+[[package]]
+name = "crossbeam-queue"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "774ba60a54c213d409d5353bda12d49cd68d14e45036a285234c8d6f91f92570"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils 0.7.2",
+ "maybe-uninit",
+]
+
+[[package]]
+name = "crossbeam-skiplist"
+version = "0.0.0"
+source = "git+https://github.com/crossbeam-rs/crossbeam.git?rev=8cc906b#8cc906b9933ef443331c30513026346399debd2d"
+dependencies = [
+ "cfg-if",
+ "crossbeam-epoch 0.7.1",
+ "crossbeam-utils 0.6.5",
+ "scopeguard 0.3.3",
+]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.6.5"
+source = "git+https://github.com/crossbeam-rs/crossbeam.git?rev=8cc906b#8cc906b9933ef443331c30513026346399debd2d"
+dependencies = [
+ "cfg-if",
+ "lazy_static",
 ]
 
 [[package]]
@@ -479,11 +537,17 @@ dependencies = [
  "assert_cmd",
  "clap",
  "criterion",
+ "crossbeam",
+ "crossbeam-skiplist",
+ "crossbeam-utils 0.7.2",
  "env_logger",
  "failure",
  "log",
+ "num_cpus",
+ "panic-control",
  "predicates",
  "rand 0.6.5",
+ "rayon",
  "serde",
  "serde_json",
  "sled",
@@ -524,6 +588,12 @@ name = "memchr"
 version = "2.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3728d817d99e5ac407411fa471ff9800a778d88a24685968b36824eaf4bee400"
+
+[[package]]
+name = "memoffset"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f9dc261e2b62d7a622bf416ea3c5245cdd5d9a7fcc428c0d06804dfce1775b3"
 
 [[package]]
 name = "memoffset"
@@ -601,6 +671,12 @@ dependencies = [
  "rayon",
  "serde",
 ]
+
+[[package]]
+name = "panic-control"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "159973aebc43b4640619042b3bf160e3b6348000a949e37c0806ae6acc79d6c7"
 
 [[package]]
 name = "ppv-lite86"
@@ -941,6 +1017,12 @@ checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
 ]
+
+[[package]]
+name = "scopeguard"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94258f53601af11e6a49f722422f6e3425c52b06245a5cf9bc09908b174f5e27"
 
 [[package]]
 name = "scopeguard"
