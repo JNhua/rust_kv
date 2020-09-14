@@ -3,14 +3,12 @@ use kvs::{KvsClient, Result};
 use std::net::SocketAddr;
 use std::process::exit;
 use structopt::StructOpt;
-
-const DEFAULT_LISTENING_ADDRESS: &str = "127.0.0.1:4000";
-const ADDRESS_FORMAT: &str = "IP:PORT";
+use tokio::prelude::*;
 
 #[derive(StructOpt, Debug)]
 #[structopt(
-    name = "kvs-client",
-    raw(global_settings = "&[\
+name = "kvs-client",
+raw(global_settings = "&[\
                            AppSettings::DisableHelpSubcommand,\
                            AppSettings::VersionlessSubcommands]")
 )]
@@ -26,11 +24,11 @@ enum Command {
         #[structopt(name = "KEY", help = "A string key")]
         key: String,
         #[structopt(
-            long,
-            help = "Sets the server address",
-            raw(value_name = "ADDRESS_FORMAT"),
-            raw(default_value = "DEFAULT_LISTENING_ADDRESS"),
-            parse(try_from_str)
+        long,
+        help = "Sets the server address",
+        value_name = "IP:PORT",
+        default_value = "127.0.0.1:4000",
+        parse(try_from_str)
         )]
         addr: SocketAddr,
     },
@@ -41,11 +39,11 @@ enum Command {
         #[structopt(name = "VALUE", help = "The string value of the key")]
         value: String,
         #[structopt(
-            long,
-            help = "Sets the server address",
-            raw(value_name = "ADDRESS_FORMAT"),
-            raw(default_value = "DEFAULT_LISTENING_ADDRESS"),
-            parse(try_from_str)
+        long,
+        help = "Sets the server address",
+        value_name = "IP:PORT",
+        default_value = "127.0.0.1:4000",
+        parse(try_from_str)
         )]
         addr: SocketAddr,
     },
@@ -54,11 +52,11 @@ enum Command {
         #[structopt(name = "KEY", help = "A string key")]
         key: String,
         #[structopt(
-            long,
-            help = "Sets the server address",
-            raw(value_name = "ADDRESS_FORMAT"),
-            raw(default_value = "DEFAULT_LISTENING_ADDRESS"),
-            parse(try_from_str)
+        long,
+        help = "Sets the server address",
+        value_name = "IP:PORT",
+        default_value = "127.0.0.1:4000",
+        parse(try_from_str)
         )]
         addr: SocketAddr,
     },
@@ -75,20 +73,22 @@ fn main() {
 fn run(opt: Opt) -> Result<()> {
     match opt.command {
         Command::Get { key, addr } => {
-            let mut client = KvsClient::connect(addr)?;
-            if let Some(value) = client.get(key)? {
+            let client = KvsClient::connect(addr);
+            if let (Some(value), _) = client.and_then(move |client| client.get(key)).wait()? {
                 println!("{}", value);
             } else {
                 println!("Key not found");
             }
         }
         Command::Set { key, value, addr } => {
-            let mut client = KvsClient::connect(addr)?;
-            client.set(key, value)?;
+            let client = KvsClient::connect(addr);
+            client
+                .and_then(move |client| client.set(key, value))
+                .wait()?;
         }
         Command::Remove { key, addr } => {
-            let mut client = KvsClient::connect(addr)?;
-            client.remove(key)?;
+            let client = KvsClient::connect(addr);
+            client.and_then(move |client| client.remove(key)).wait()?;
         }
     }
     Ok(())

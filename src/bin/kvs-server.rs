@@ -3,14 +3,15 @@ extern crate log;
 #[macro_use]
 extern crate clap;
 
-use kvs::*;
+use kvs::thread_pool::*;
+use kvs::{KvStore, KvsEngine, KvsServer, Result, SledKvsEngine};
 use log::LevelFilter;
+use std::env;
 use std::env::current_dir;
-use std::{fs, env};
+use std::fs;
 use std::net::SocketAddr;
 use std::process::exit;
 use structopt::StructOpt;
-use kvs::thread_pool::{RayonThreadPool, ThreadPool};
 
 const DEFAULT_LISTENING_ADDRESS: &str = "127.0.0.1:4000";
 const DEFAULT_ENGINE: Engine = Engine::kvs;
@@ -19,18 +20,18 @@ const DEFAULT_ENGINE: Engine = Engine::kvs;
 #[structopt(name = "kvs-server")]
 struct Opt {
     #[structopt(
-        long,
-        help = "Sets the listening address",
-        value_name = "IP:PORT",
-        raw(default_value = "DEFAULT_LISTENING_ADDRESS"),
-        parse(try_from_str)
+    long,
+    help = "Sets the listening address",
+    value_name = "IP:PORT",
+    raw(default_value = "DEFAULT_LISTENING_ADDRESS"),
+    parse(try_from_str)
     )]
     addr: SocketAddr,
     #[structopt(
-        long,
-        help = "Sets the storage engine",
-        value_name = "ENGINE-NAME",
-        raw(possible_values = "&Engine::variants()")
+    long,
+    help = "Sets the storage engine",
+    value_name = "ENGINE-NAME",
+    raw(possible_values = "&Engine::variants()")
     )]
     engine: Option<Engine>,
 }
@@ -52,7 +53,7 @@ fn main() {
             opt.engine = curr_engine;
         }
         if curr_engine.is_some() && opt.engine != curr_engine {
-            error!("Wrong engine! Current engine is {}", curr_engine.unwrap());
+            error!("Wrong engine!");
             exit(1);
         }
         run(opt)
@@ -72,20 +73,24 @@ fn run(opt: Opt) -> Result<()> {
     // write engine to engine file
     fs::write(current_dir()?.join("engine"), format!("{}", engine))?;
 
-    let pool = RayonThreadPool::new(num_cpus::get() as u32)?;
-
+    let concurrency = num_cpus::get() as u32;
     match engine {
-        Engine::kvs => run_with_engine(KvStore::open(env::current_dir()?)?, pool, opt.addr),
-        Engine::sled => run_with_engine(
-            SledKvsEngine::new(sled::Db::start_default(env::current_dir()?)?),
-            pool,
+        Engine::kvs => run_with(
+            KvStore::<RayonThreadPool>::open(env::current_dir()?, concurrency)?,
+            opt.addr,
+        ),
+        Engine::sled => run_with(
+            SledKvsEngine::<RayonThreadPool>::new(
+                sled::Db::start_default(env::current_dir()?)?,
+                concurrency,
+            )?,
             opt.addr,
         ),
     }
 }
 
-fn run_with_engine<E: KvsEngine, P: ThreadPool>(engine: E, pool: P, addr: SocketAddr) -> Result<()> {
-    let server = KvsServer::new(engine, pool);
+pub fn run_with<E: KvsEngine>(engine: E, addr: SocketAddr) -> Result<()> {
+    let server = KvsServer::new(engine);
     server.run(addr)
 }
 
