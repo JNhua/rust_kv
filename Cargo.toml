@@ -16,6 +16,10 @@ log = "0.4.6"
 env_logger = "0.6.1"
 sled = "0.22.1"
 structopt = "0.2.15"
+crossbeam = "0.7.3"
+rayon = "1.0.3"
+num_cpus = "1.10.0"
+crossbeam-skiplist = { version = "0.0.0", git = "https://github.com/crossbeam-rs/crossbeam.git", rev = "8cc906b" }
 
 [dev-dependencies]
 assert_cmd = "1.0.1"
@@ -23,6 +27,9 @@ predicates = "1.0.5"
 tempfile = "3.1.0"
 walkdir = "2.3.1"
 criterion = "0.2.11"
+rand = "0.6.5"
+crossbeam-utils = "0.7.2"
+panic-control = "0.1.4"
 
 [[bench]]
 name = "engine_bench"

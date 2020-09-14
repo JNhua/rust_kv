@@ -51,7 +51,7 @@ fn main() {
             opt.engine = curr_engine;
         }
         if curr_engine.is_some() && opt.engine != curr_engine {
-            error!("Wrong engine!");
+            error!("Wrong engine! Current engine is {}", curr_engine.unwrap());
             exit(1);
         }
         run(opt)
