@@ -6,10 +6,11 @@ extern crate clap;
 use kvs::*;
 use log::LevelFilter;
 use std::env::current_dir;
-use std::fs;
+use std::{fs, env};
 use std::net::SocketAddr;
 use std::process::exit;
 use structopt::StructOpt;
+use kvs::thread_pool::{RayonThreadPool, ThreadPool};
 
 const DEFAULT_LISTENING_ADDRESS: &str = "127.0.0.1:4000";
 const DEFAULT_ENGINE: Engine = Engine::kvs;
@@ -71,17 +72,20 @@ fn run(opt: Opt) -> Result<()> {
     // write engine to engine file
     fs::write(current_dir()?.join("engine"), format!("{}", engine))?;
 
+    let pool = RayonThreadPool::new(num_cpus::get() as u32)?;
+
     match engine {
-        Engine::kvs => run_with_engine(KvStore::open(current_dir()?)?, opt.addr),
+        Engine::kvs => run_with_engine(KvStore::open(env::current_dir()?)?, pool, opt.addr),
         Engine::sled => run_with_engine(
-            SledKvsEngine::new(sled::Db::start_default(current_dir()?)?),
+            SledKvsEngine::new(sled::Db::start_default(env::current_dir()?)?),
+            pool,
             opt.addr,
         ),
     }
 }
 
-fn run_with_engine<E: KvsEngine>(engine: E, addr: SocketAddr) -> Result<()> {
-    let server = KvsServer::new(engine);
+fn run_with_engine<E: KvsEngine, P: ThreadPool>(engine: E, pool: P, addr: SocketAddr) -> Result<()> {
+    let server = KvsServer::new(engine, pool);
     server.run(addr)
 }
 
